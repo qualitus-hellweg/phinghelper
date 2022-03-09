@@ -1,0 +1,6 @@
+{
+    "require": {
+        "phing/phing": "2.*",
+        "pear/versioncontrol_git": "^0.5.0"
+    }
+}
