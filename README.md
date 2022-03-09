@@ -50,7 +50,7 @@ sh install.sh
 
 ### first install in ilias
 ```
-https://github.com/qualitus-hellweg/_phing.git
+git clone https://github.com/qualitus-hellweg/_phing.git
 cd _phing
 sh install.sh
 # test, show targets
