@@ -54,5 +54,6 @@ https://github.com/qualitus-hellweg/_phing.git
 cd _phing
 sh install.sh
 # test, show targets
+cd ..
 ./phing
 ```
