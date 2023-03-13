@@ -31,7 +31,7 @@ while( $count > 0 ) {
         $tempProject[ 'id' ] = "" . $item->id;
         $tempProject[ 'name' ] = "" . $item->name;
         $tempProject[ 'gitpath' ] = "" . $item->path_with_namespace;
-        $tempProject[ 'filepath' ] = "";
+//        $tempProject[ 'filepath' ] = "";
         $tempProject[ 'repourl' ]  = "" . $item->http_url_to_repo;
         
         
@@ -46,9 +46,22 @@ while( $count > 0 ) {
             $ilias_min_version = "";
             $ilias_max_version = "";            
             $fileContent = fetchFileFromGitlab( $gitid, $branchName );            
-            file_put_contents( __DIR__ . '/plugin.php', $fileContent );
-            include __DIR__ . '/plugin.php';
-            unlink( __DIR__ . '/plugin.php' );
+            if( strlen( $fileContent ) > 0 ) {
+                if( isInString( 'require', $fileContent ) ) {
+                    $fileContent = str_replace( 'require_once', 'echo', $fileContent );
+                    $fileContent = str_replace( 'require', 'echo', $fileContent );
+                }
+                if( isInString( 'include', $fileContent ) ) {
+                    $fileContent = str_replace( 'include_once', 'echo', $fileContent );
+                    $fileContent = str_replace( 'include', 'echo', $fileContent );
+                }
+                
+                
+                file_put_contents( __DIR__ . '/plugin.php', $fileContent );
+                include __DIR__ . '/plugin.php';
+                unlink( __DIR__ . '/plugin.php' );
+
+            }
             
             $min = $ilias_min_version;
             $max = $ilias_max_version;
@@ -58,10 +71,24 @@ while( $count > 0 ) {
             $temp[ 'name' ] = "" . $branchName;
             $temp[ 'ilias_min' ] = $min;
             $temp[ 'ilias_max' ] = $max;
+            
+            // add composer to branch
+            $temp[ 'composer' ] = "";
+            if( fileExists( $gitid, $branchName, 'composer.json' ) ) {
+                $temp[ 'composer' ] = "1";
+            }
+            $temp[ 'composer_vendor' ] = "";
+            if( fileExists( $gitid, $branchName, 'vendor/autoload.php' ) ) {
+                $temp[ 'composer_vendor' ] = "1";
+            }
+            
+            
             $allBranches[ $branchName ] = $temp;
             
-        }
-        $tempProject[ 'composer' ] = checkComposerFromGitlab( $gitid, $branchName );
+        }                
+        $tempProject[ 'filepath' ] = getFilesystemPathForRepository( $gitid, $branchName, $tempProject[ 'name' ] );
+        
+        
         // */
         $tempProject[ 'branches' ] = $allBranches;
         $allProjects[ $repoUrl ] = $tempProject;

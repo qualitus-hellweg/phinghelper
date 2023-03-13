@@ -17,7 +17,8 @@ function checkIntegrity( $plugins, $iliasVersionToCheck='' ) {
         $url  = $data[ 'url' ];
         $prod = $data[ 'branch' ];
         $dev  = $data[ 'devbranch' ];
-
+        $fileSystemPath = $data[ 'path' ];
+        
         $temp = array();
         // check, if url is correct
         if( $git->isProject( $url ) ) {
@@ -34,14 +35,16 @@ function checkIntegrity( $plugins, $iliasVersionToCheck='' ) {
                     $max = $branch->getIliasMax();
 
                     $out = "";
-                    if( $iliasVersionToCheck < $min ) {
-                        $out .= "min: " . $min;
-                    }
-                    if( $iliasVersionToCheck > $max ) {
-                        if( strlen( $out ) > 0 ) {
-                            $out .= '; ';
+                    if( strlen( $min ) > 0 ) {
+                        if( $iliasVersionToCheck < $min ) {
+                            $out .= "min: " . $min;
                         }
-                        $out .= "max: " . $max;
+                        if( $iliasVersionToCheck > $max ) {
+                            if( strlen( $out ) > 0 ) {
+                                $out .= '; ';
+                            }
+                            $out .= "max: " . $max;
+                        }
                     }
                     if( strlen( $out ) > 0 ) {
                         if( isset( $temp[ 'branch' ] ) ) {
@@ -65,14 +68,16 @@ function checkIntegrity( $plugins, $iliasVersionToCheck='' ) {
                     $max = $branch->getIliasMax();
 
                     $out = "";
-                    if( $iliasVersionToCheck < $min ) {
-                        $out .= "min: " . $min;
-                    }
-                    if( $iliasVersionToCheck > $max ) {
-                        if( strlen( $out ) > 0 ) {
-                            $out .= '; ';
+                    if( strlen( $min ) > 0 ) {
+                        if( $iliasVersionToCheck < $min ) {
+                            $out .= "min: " . $min;
                         }
-                        $out .= "max: " . $max;
+                        if( $iliasVersionToCheck > $max ) {
+                            if( strlen( $out ) > 0 ) {
+                                $out .= '; ';
+                            }
+                            $out .= "max: " . $max;
+                        }
                     }
                     if( strlen( $out ) > 0 ) {
                         if( isset( $temp[ 'devbranch' ] ) ) {
@@ -86,16 +91,56 @@ function checkIntegrity( $plugins, $iliasVersionToCheck='' ) {
             }
             
             // check composer
-            $composer = $data[ 'composer' ];
-            if( strlen( $composer ) > 0 ) {
-                if( strlen( $project->getComposer() ) == 0 ) {
-                    $temp[ 'composer' ] = 'composer is used, but shouldnt';
+            if( 
+                ( isset( $branches[ $prod ]) )
+                && ( isset( $branches[ $dev ]) )
+            ) {
+                $outComposerErrors = '';
+                $composer = $data[ 'composer' ];
+            
+            
+                $prodBranch = $branches[ $prod ];
+                $devBranch = $branches[ $dev ];
+
+                if( strlen( $composer ) > 0 ) {
+                    if( 
+                        ( ! $prodBranch->isComposer() )
+                        || ( $prodBranch->isComposer() && $prodBranch->isComposerVendor() ) 
+                    ) {
+                        $outComposerErrors .= 'prod-composer is used, but shouldnt <br/>' . PHP_EOL;
+                    }
+                    
+                    if( 
+                        ( ! $devBranch->isComposer() )
+                        || ( $devBranch->isComposer() && $devBranch->isComposerVendor() ) 
+                    ) {
+                        $outComposerErrors .= 'dev-composer is used, but shouldnt <br/>' . PHP_EOL;
+                    }
+                    
+                } else {
+                    
+                    if( 
+                        ( ( $prodBranch->isComposer() ) && ( ! $prodBranch->isComposerVendor() ) )
+                    ) {
+                        $outComposerErrors .= 'prod-composer is not used, but should <br/>' . PHP_EOL;
+                    }
+                    
+                    if( 
+                        ( ( $devBranch->isComposer() ) && ( ! $devBranch->isComposerVendor() ) )
+                    ) {
+                        $outComposerErrors .= 'dev-composer is not used, but should <br/>' . PHP_EOL;
+                    }
+                    
+                }
+
+                if( strlen( $outComposerErrors ) > 0 ) {
+                    $temp[ 'composer' ] = $outComposerErrors;
                 }
             }
-            if( strlen( $composer ) == 0 ) {
-                if( strlen( $project->getComposer() ) > 0 ) {
-                    $temp[ 'composer' ] = 'composer is not used, but should';
-                }
+            
+            // check fileSystemPath
+            if( $project->getFilepath() != $fileSystemPath ) {
+                $temp[ 'path' ] = 'path is different, git shows: "' . $project->getFilepath() . '"';
             }
 
         } else {

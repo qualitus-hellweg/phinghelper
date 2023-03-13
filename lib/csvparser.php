@@ -30,3 +30,17 @@ function parseCSV() {
     return $modules;
 }
 //echo '<pre>', print_r( $gitmodules, 1 ), '</pre>';
+
+function serializePlugins( $plugins ) {
+    $out = 'Name;Path;URL;prod-Branch;dev-Branch;composer' . PHP_EOL;
+    foreach( $plugins as $plugin ) {
+        $out .= $plugin[ 'name' ] 
+            . ';' . $plugin[ 'path'] 
+            . ';' . $plugin[ 'url']
+            . ';' . $plugin[ 'branch'] 
+            . ';' . $plugin[ 'devbranch' ] 
+            . ';' . $plugin[ 'composer' ]
+            . ';' . PHP_EOL;
+    }
+    file_put_contents( __DIR__ . '/../plugins.csv', $out );
+}

@@ -16,9 +16,19 @@ mkdir -p Customizing/global/plugins/Services/Repository/RepositoryObject
 mkdir -p Customizing/global/plugins/Services/User/UDFClaiming
 
 echo "installing phing"
-[ -f composer.lock ] && rm -f composer.lock
-composer install --no-interaction
-ln -s vendor/bin/phing ./phing
+if [ -f ./phing ]; then
+	echo "phing symlink already exists"	
+        exit 0
+else
+        [ -f composer.lock ] && rm -f composer.lock
+        composer install --no-interaction
+        ln -s vendor/bin/phing ./phing
+fi
 
-echo "creating inital build.xml"
-php index.php > /dev/null
+if [ -f build.xml ]; then
+        echo "found build.xml"
+else
+
+        echo "creating inital build.xml silently"
+        php index.php > /dev/null
+fi

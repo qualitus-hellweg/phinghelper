@@ -1,8 +1,9 @@
 <?php
 require_once __DIR__ . '/lib/_all.php';
-$BASE_URL = 'http://localhost:8080' . $_SERVER[ 'PHP_SELF' ];
+
 
 $config = getConfig();
+$BASE_URL = $config[ 'baseurl' ];
 
 
 $iliasVersionToCheck = '';
@@ -34,6 +35,10 @@ file_put_contents( __DIR__ . '/build.xml', $phingXML );
 
 if( $webmode ) { 
     echo '<html><body>';
+
+    // header
+    include __DIR__ . '/header.php';
+
     echo '<h1>edit/check</h1>';
 //    echo '<h1>' . $_SERVER[ 'PHP_SELF' ] . '</h1>';
     echo '<form action="' . $BASE_URL . '" METHOD="POST">';
@@ -49,11 +54,18 @@ if( $webmode ) {
     }
     echo '<h1>check</h1>';
     echo '<table>';
-    echo '<tr><th>name</th><th>url</th><th>branch</th><th>devbranch</th><th>error</th></tr>';
+    echo '<tr><th>name</th><th>path</th><th>url</th><th>branch</th><th>devbranch</th><th>composer</th><th>error</th></tr>';
 
     foreach( $plugins as $name => $data ) {
         echo '<tr>';
         echo '<td><a href="'. $data[ 'url' ] .'">' . $name . '</a></td>';
+        if( isset( $errors[ $name ][ 'path' ] ) ) {
+            echo '<td style="background-color:#FF0000">';
+        } else {
+            echo '<td style="background-color:#00FF00">';
+        }
+        echo $data[ 'path' ];
+        echo '</td>';
         if( isset( $errors[ $name ][ 'url' ] ) ) {
             echo '<td style="background-color:#FF0000">';
         } else {
@@ -77,6 +89,16 @@ if( $webmode ) {
         }
         echo $data[ 'devbranch' ];
         echo '</td>';
+ 
+        if( isset( $errors[ $name ][ 'composer' ] ) ) {
+            echo '<td style="background-color:#FF0000">';
+        } else {
+            echo '<td style="background-color:#00FF00">';
+        }
+        echo $data[ 'composer' ];
+        echo '</td>';
+        
+        
         echo '<td>';
         if( isset( $errors[ $name ] ) ) {
             echo '<pre>' . print_r( $errors[ $name ], 1 ) . '</pre>';

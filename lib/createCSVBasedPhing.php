@@ -14,7 +14,7 @@ function createPhing( $modules ) {
     $outProd    = '';
     $outFb      = '';
     $outComposer= '';
-    
+    $outComposerNoDev = '';
     
     $out = '';
     $temp = array();
@@ -79,6 +79,30 @@ function createPhing( $modules ) {
 //        echo '<h1><pre>', print_r( $module, 1 ), '</pre></h1>';
         if( ! isset( $module[ 'name' ] ) ) 
             continue;
+        if( 
+            ( $module[ 'composer' ] == '1' ) 
+            || ( strtolower( $module[ 'composer' ] ) == 'j' ) 
+            || ( strtolower( $module[ 'composer' ] ) == 'y' ) 
+            || ( strtolower( $module[ 'composer' ] ) == 'ja' ) 
+            || ( strtolower( $module[ 'composer' ] ) == 'yes' ) 
+        ) {
+                $out .= PHP_EOL . '        <exec 
+            command="composer install --no-interaction --no-dev" passthru="true"
+            dir="' . $module[ 'path' ] . '/' . $module[ 'name' ] . '"
+        />';
+        }
+    }
+    $outComposerNoDev = $out;
+    if( strlen( $outComposerNoDev ) == 0 ) {
+        $outComposerNoDev = PHP_EOL . '        <echo msg="skipping, no composer parts" />';
+    }
+    
+    
+    $out = '';
+    foreach( $modules as $module ) {
+//        echo '<h1><pre>', print_r( $module, 1 ), '</pre></h1>';
+        if( ! isset( $module[ 'name' ] ) ) 
+            continue;
 
         if( isset( $module[ 'branch' ] ) ) {
             $out .= PHP_EOL . '        <gitcheckout
@@ -123,7 +147,8 @@ function createPhing( $modules ) {
         <echo msg="clean        cleans up old installations" />
         <echo msg="clone        clones the repositories" />
         <echo msg="pull         pulls the repositories" />
-        <echo msg="composer     calls all composers" />
+        <echo msg="composer     calls all composers(no-dev)" />
+        <echo msg="composer-dev calls all composers" />
         <echo msg="" />
         <echo msg="branches:" />
         <echo msg="dev          switches to dev-branch" />
@@ -133,9 +158,9 @@ function createPhing( $modules ) {
         <echo msg="makros:" />
         <echo msg="install      synonym for \'install-prod\'" />
         <echo msg="install-prod synonym for \'clean clone prod composer\'" />
-        <echo msg="install-dev  synonym for \'clean clone dev  composer\'" />
+        <echo msg="install-dev  synonym for \'clean clone dev  composer-dev\'" />
         <echo msg="install-fb   synonym for \'clean clone fb   composer\'" />
-        <echo msg="update       synonym for \'pull composer\'" />		
+        <echo msg="update       synonym for \'pull\'" />		
     </target>
 
     <!-- FB first. please delete this line if you actually changed the branch here -->
@@ -155,7 +180,11 @@ function createPhing( $modules ) {
     </target>
 
     <!-- ====================================== composer ====================================== -->
-    <target name="composer">' . $outComposer . '        
+    <target name="composer">' . $outComposerNoDev . '        
+    </target>
+    
+    <!-- ====================================== composer ====================================== -->
+    <target name="composer-dev">' . $outComposer . '        
     </target>
 
     <!-- ====================================== prod ====================================== -->
@@ -182,7 +211,7 @@ function createPhing( $modules ) {
         <phingcall target="clean" />
         <phingcall target="clone" />
         <phingcall target="dev" />
-        <phingcall target="composer" />
+        <phingcall target="composer-dev" />
     </target>
     <target name="install-fb">
         <phingcall target="clean" />
@@ -192,8 +221,7 @@ function createPhing( $modules ) {
     </target>
     
     <target name="update">
-        <phingcall target="pull" />
-        <phingcall target="composer" />
+        <phingcall target="pull" />        
     </target>
 </project>        
 ';    
