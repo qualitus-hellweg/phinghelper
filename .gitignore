@@ -2,4 +2,3 @@ Customizing/
 vendor/
 composer.lock
 phing
-lib/_all.php
